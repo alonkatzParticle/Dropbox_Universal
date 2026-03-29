@@ -1,0 +1,110 @@
+[
+  {
+    "id": "1774780332818-iba3m",
+    "ts": "2026-03-29T10:32:12.818Z",
+    "level": "error",
+    "source": "runSelected",
+    "message": "Failed for item 2783254997",
+    "context": {
+      "boardId": "5093001619",
+      "itemId": "2783254997",
+      "error": "Error: Dropbox token refresh failed: 400 Bad Request"
+    }
+  },
+  {
+    "id": "1774780878390-a53qu",
+    "ts": "2026-03-29T10:41:18.390Z",
+    "level": "error",
+    "source": "runSelected",
+    "message": "Failed for item 2783254997",
+    "context": {
+      "boardId": "5093001619",
+      "itemId": "2783254997",
+      "error": "Error: Dropbox token refresh failed: 400 Bad Request"
+    }
+  },
+  {
+    "id": "1774780890914-qq7ze",
+    "ts": "2026-03-29T10:41:30.914Z",
+    "level": "error",
+    "source": "runSelected",
+    "message": "Failed for item 2783254997",
+    "context": {
+      "boardId": "5093001619",
+      "itemId": "2783254997",
+      "error": "Error: Dropbox token refresh failed: 400 Bad Request"
+    }
+  },
+  {
+    "id": "1774781091487-nrb96",
+    "ts": "2026-03-29T10:44:51.487Z",
+    "level": "info",
+    "source": "processItem",
+    "message": "Created folder for 'UGC mashup video (w. creators video mix)'",
+    "context": {
+      "boardId": "5093001619",
+      "itemId": "2804933429",
+      "path": "/Creative 2026/Paid Social/Products/Eye Tightener/Video/Meta/03_March 2026/UGC mashup video (w. creators video mix)"
+    }
+  },
+  {
+    "id": "1774781167908-fmmdt",
+    "ts": "2026-03-29T10:46:07.908Z",
+    "level": "info",
+    "source": "processItem",
+    "message": "Created folder for 'Opening Shot: Narrator + Before After Shot'",
+    "context": {
+      "boardId": "5093001619",
+      "itemId": "2783254997",
+      "path": "/Creative 2026/Paid Social/Products/Eye Tightener/Video/Other/03_March 2026/Opening Shot: Narrator + Before After Shot"
+    }
+  },
+  {
+    "id": "1774781856113-weye1",
+    "ts": "2026-03-29T10:57:36.113Z",
+    "level": "info",
+    "source": "processItem",
+    "message": "Created folder for '3 mistakes video'",
+    "context": {
+      "boardId": "5093001619",
+      "itemId": "2802061562",
+      "path": "/Creative 2026/Paid Social/Products/Eye Tightener/Video/Meta/03_March 2026/3 mistakes video"
+    }
+  },
+  {
+    "id": "1774781858916-aa57a",
+    "ts": "2026-03-29T10:57:38.916Z",
+    "level": "info",
+    "source": "processItem",
+    "message": "Created folder for 'Still Me'",
+    "context": {
+      "boardId": "5093001619",
+      "itemId": "2794973008",
+      "path": "/Creative 2026/Paid Social/Products/Eye Tightener/Video/Meta/03_March 2026/Still Me"
+    }
+  },
+  {
+    "id": "1774781862179-dechu",
+    "ts": "2026-03-29T10:57:42.179Z",
+    "level": "info",
+    "source": "processItem",
+    "message": "Created folder for 'Short Form (45–60s)'",
+    "context": {
+      "boardId": "5093001619",
+      "itemId": "2787632619",
+      "path": "/Creative 2026/Paid Social/Products/Eye Tightener/Video/Meta/03_March 2026/Short Form (45–60s)"
+    }
+  },
+  {
+    "id": "1774785997868-2qfe6",
+    "ts": "2026-03-29T12:06:37.868Z",
+    "level": "info",
+    "source": "processItem",
+    "message": "Created folder for '90 Second Reveal'",
+    "context": {
+      "boardId": "5093001619",
+      "itemId": "2798844823",
+      "path": "/Creative 2026/Organic Social/Products/Eye Tightener/Video/Other/03_March 2026/90 Second Reveal"
+    }
+  }
+]

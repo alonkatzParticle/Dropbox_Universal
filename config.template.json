@@ -1,0 +1,68 @@
+{
+  "_comment": "This file controls how the app works. Copy this file to config.json and fill in your values.",
+  "dropbox_root": "/YOUR_TOP_LEVEL_DROPBOX_FOLDER",
+  "_dropbox_root_comment": "The top-level folder in your Dropbox where all project folders live. Must start with /",
+  "monday_subdomain": "your-company",
+  "_monday_subdomain_comment": "Your Monday.com subdomain (the part before .monday.com in your URL).",
+  "boards": {
+    "YOUR_BOARD_ID": {
+      "_comment": "Replace YOUR_BOARD_ID with the numeric ID from your Monday.com board URL",
+      "name": "Your Board Name",
+      "media_type": "Video",
+      "_media_type_comment": "Used as a folder name in the path. e.g. 'Video' or 'Image'",
+      "dropbox_link_column": "link__1",
+      "_dropbox_link_column_comment": "Monday.com column ID where the Dropbox link will be written. Find it in your board's column settings.",
+      "status_column": "status",
+      "_status_column_comment": "Monday.com column ID for task status.",
+      "completed_labels": [
+        "Completed"
+      ],
+      "_completed_labels_comment": "Tasks with these status labels are hidden from the missing-links list.",
+      "approved_label": "Approved",
+      "_approved_label_comment": "When a task's status changes to this label, a Dropbox folder is automatically created.",
+      "columns": {
+        "department": "COLUMN_ID_FOR_DEPARTMENT",
+        "product": "COLUMN_ID_FOR_PRODUCT",
+        "platform": "COLUMN_ID_FOR_PLATFORM"
+      },
+      "_columns_comment": "Map each folder-path variable to its Monday.com column ID. Find column IDs in your board settings.",
+      "bundle_keywords": [
+        "Set",
+        "Bundle",
+        "Kit",
+        "Pack",
+        "Collection"
+      ],
+      "_bundle_keywords_comment": "If a task name contains any of these words, it's treated as a bundle (multiple products).",
+      "other_keywords": [
+        "Multiple Products",
+        "Not a Product Task"
+      ],
+      "_other_keywords_comment": "Tasks matching these keywords are flagged as non-standard and won't get auto folders.",
+      "fallback_values": {
+        "department": "Unknown",
+        "product": "Unknown Product",
+        "platform": ""
+      },
+      "_fallback_values_comment": "Used when a column value is blank. Set to empty string '' to skip that folder level.",
+      "department_rules": {
+        "YOUR_DEPARTMENT_LABEL": {
+          "dropbox_folder": "Dropbox Subfolder Name",
+          "_dropbox_folder_comment": "The folder inside dropbox_root where this department's files go.",
+          "path_template": [
+            "dept_folder",
+            "category",
+            "product",
+            "media_type",
+            "platform",
+            "date",
+            "task_name"
+          ],
+          "_path_template_comment": "Ordered list of folder levels. Available values: dept_folder, category, product, media_type, platform, date, task_name"
+        }
+      },
+      "_department_rules_comment": "Add one entry per department label. The label must exactly match what appears in Monday.com.",
+      "fixed_level_values": {}
+    }
+  }
+}
