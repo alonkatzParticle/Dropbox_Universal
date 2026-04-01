@@ -63,7 +63,7 @@ export default function AmbiguousTaskCard({ task, dropboxRoot, deptRules, onCrea
    * Called by PathBuilder when the user clicks "Create Folder".
    * PathBuilder provides the full path (including task_name), so we send it directly.
    *
-   * fullPath — Complete Dropbox path (e.g. /Creative 2026/Social Media/Products/Face Cream/...)
+   * fullPath — Complete Dropbox path (e.g. /Creative/Social Media/Products/Face Cream/...)
    */
   async function handleConfirm(fullPath: string) {
     setCreating(true);

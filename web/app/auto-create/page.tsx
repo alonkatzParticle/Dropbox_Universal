@@ -41,7 +41,7 @@ export default function AutoCreatorPage() {
   const [groupWarnings, setGroupWarnings] = useState<{ boardId: string; boardName: string; configured: string; foundGroups: string[] }[]>([]);
   // Per-board department rules: boardId → { name, department_rules }
   const [boardsInfo, setBoardsInfo] = useState<Record<string, BoardInfo>>({});
-  const [dropboxRoot, setDropboxRoot] = useState("/Creative 2026");
+  const [dropboxRoot, setDropboxRoot] = useState("/Creative");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -111,7 +111,7 @@ export default function AutoCreatorPage() {
       setAmbiguous(allAmbiguous);
       setApprovedWithFolder(tasks.approvedWithFolder ?? []);
       setGroupWarnings(tasks.groupWarnings ?? []);
-      setDropboxRoot(cfg.dropbox_root ?? "/Creative 2026");
+      setDropboxRoot(cfg.dropbox_root ?? "/Creative");
 
       // Build per-board info map from cfg.boards
       const info: Record<string, BoardInfo> = {};
