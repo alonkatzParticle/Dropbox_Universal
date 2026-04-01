@@ -159,7 +159,7 @@ export default function AutoCreatorPage() {
               <span className="font-medium">{w.boardName}:</span> Form Requests group not found.{" "}
               Config says <code className="bg-amber-100 px-1 rounded">{w.configured}</code> but groups on this board are:{" "}
               <span className="font-medium">{w.foundGroups.join(", ")}</span>.{" "}
-              Update <code className="bg-amber-100 px-1 rounded">form_requests_group</code> in Settings.
+              Update <code className="bg-amber-100 px-1 rounded">Target Monday Group</code> in Board Setup (Wizard) Step 4.
             </div>
           </div>
         ))}
