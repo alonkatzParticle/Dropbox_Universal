@@ -28,6 +28,16 @@ export function getDateFolder(now: Date = new Date()): string {
   return `${String(index).padStart(2, "0")}_${month} ${year}`;
 }
 
+export interface AutoNameSegment {
+  field: string;
+  fallback?: string;
+  valueMap?: Record<string, string>;
+  onlyValues?: string[];
+  skipValues?: string[];
+  onlyWhenField?: string;
+  onlyWhenValue?: string;
+}
+
 export interface BoardConfig {
   name: string;
   media_type?: string;
@@ -42,6 +52,7 @@ export interface BoardConfig {
   fallback_values?: Record<string, string>;
   department_rules?: Record<string, DeptRule>;
   fixed_level_values?: Record<string, string>;
+  autoName?: { segments: AutoNameSegment[] };
 }
 
 export interface DeptRule {
@@ -65,6 +76,7 @@ export class Board {
   fallback: Record<string, string>;
   departmentRules: Record<string, DeptRule>;
   fixedLevelValues: Record<string, string>;
+  autoName?: { segments: AutoNameSegment[] };
 
   constructor(boardId: string, config: BoardConfig) {
     this.boardId = boardId;
@@ -81,6 +93,7 @@ export class Board {
     this.fallback = config.fallback_values ?? {};
     this.departmentRules = config.department_rules ?? {};
     this.fixedLevelValues = config.fixed_level_values ?? {};
+    this.autoName = config.autoName;
   }
 
   /** Determine category (Products / Bundles / Other) from a product name. */
@@ -114,9 +127,9 @@ export class Board {
     if (segment === "media_type") return this.mediaType;
     if (segment === "date") return getDateFolder();
     if (segment === "task_name") {
-      let name = item.name ?? "Untitled Task";
-      if (name.includes(" | ")) name = name.split(" | ").pop()!;
-      return sanitize(name);
+      let baseName = item.name ?? "Untitled Task";
+      if (baseName.includes(" | ")) baseName = baseName.split(" | ").pop()!;
+      return sanitize(baseName);
     }
     const fixed = rule.fixed_values?.[segment];
     if (fixed) return sanitize(fixed);
@@ -142,4 +155,54 @@ export class Board {
     }
     return parts.join("/");
   }
+
+  /** Calculate the physical expected task name based on autoName rules for Monday.com */
+  getAutoName(item: MondayItem): string | null {
+    if (!this.autoName || !this.autoName.segments || this.autoName.segments.length === 0) return null;
+
+    let baseName = item.name ?? "Untitled Task";
+    if (baseName.includes(" | ")) baseName = baseName.split(" | ").pop()!.trim();
+
+    const built = this.autoName.segments
+      .map((seg) => {
+        let val = "";
+        if (seg.field === "taskName") {
+          val = baseName;
+        } else {
+          const colId = this.columns[seg.field] ?? "";
+          val = getColumnValue(item, colId) || (this.fallback[seg.field] ?? "");
+        }
+
+        // Specifically treat "Other" as an empty string natively so it naturally triggers fallbacks!
+        if (val.toLowerCase() === "other") {
+          val = "";
+        }
+
+        if (!val && seg.fallback) {
+          if (seg.fallback === "taskName") val = baseName;
+          else {
+            const fallbackColId = this.columns[seg.fallback] ?? "";
+            val = getColumnValue(item, fallbackColId) || (this.fallback[seg.fallback] ?? "");
+          }
+        }
+        if (!val) return null;
+
+        if (seg.onlyWhenField) {
+          const condColId = this.columns[seg.onlyWhenField] ?? "";
+          const condVal = getColumnValue(item, condColId) || (this.fallback[seg.onlyWhenField] ?? "");
+          if (condVal !== seg.onlyWhenValue) return null;
+        }
+
+        if (seg.onlyValues && !seg.onlyValues.includes(val)) return null;
+        if (seg.skipValues && seg.skipValues.includes(val)) return null;
+        if (seg.valueMap && seg.valueMap[val]) val = seg.valueMap[val];
+
+        return val;
+      })
+      .filter(Boolean)
+      .join(" | ");
+
+    return built;
+  }
 }
+

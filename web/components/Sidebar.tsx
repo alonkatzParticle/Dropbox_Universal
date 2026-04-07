@@ -17,6 +17,7 @@ import { FolderSync, LayoutDashboard, FolderTree, Columns2, Terminal, FolderInpu
 const NAV_ITEMS = [
   { href: "/", label: "Home", icon: LayoutDashboard },
   { href: "/auto-create", label: "Auto-Creator", icon: Zap },
+  { href: "/auto-name", label: "Naming Rules", icon: FolderInput },
   { href: "/skipped-tasks", label: "Skipped Tasks", icon: Ban },
   { href: "/skip-rules", label: "Skip Rules", icon: ShieldOff },
   { href: "/folder-mover", label: "Folder Mover", icon: FolderInput },

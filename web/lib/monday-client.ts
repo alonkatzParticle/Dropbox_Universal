@@ -87,6 +87,19 @@ export async function updateDropboxLink(
 }
 
 /**
+ * Update the physical task name of a Monday.com item.
+ */
+export async function updateItemName(itemId: string, boardId: string, newName: string): Promise<void> {
+  await runQuery(
+    `mutation ($itemId: ID!, $boardId: ID!, $name: String!) {
+      change_item_name(item_id: $itemId, board_id: $boardId, name: $name) { id }
+    }`,
+    { itemId, boardId, name: newName }
+  );
+}
+
+
+/**
  * Extract the text value of a column from an item's column_values array.
  * Returns an empty string if the column is not present.
  */
