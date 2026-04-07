@@ -81,20 +81,21 @@ export async function runPolling(config: Record<string, unknown>): Promise<strin
       lines.push(`  Found ${items.length} new item(s).`);
 
       for (const item of items) {
-        // Enforce the Naming Rules automatically!
+        const task = new Task(item, board, subdomain);
+        if (!task.isNew) { lines.push(`  → Skipping '${task.taskName}' (group: '${task.groupTitle}')`); continue; }
+
+        // Enforce the Naming Rules automatically ONLY for tasks in the Form Requests group!
         const expectedName = board.getAutoName(item);
         if (expectedName && expectedName !== item.name && expectedName.length > 0) {
           try {
             await updateItemName(item.id, boardId, expectedName);
             lines.push(`  → Auto-named task to '${expectedName}'`);
             item.name = expectedName; // Mutate local reference for the rest of the flow
+            task.taskName = expectedName; // Update task wrapper explicitly
           } catch(e) {
             lines.push(`  ✗ Failed to auto-name '${item.name}': ${e}`);
           }
         }
-
-        const task = new Task(item, board, subdomain);
-        if (!task.isNew) { lines.push(`  → Skipping '${task.taskName}' (group: '${task.groupTitle}')`); continue; }
         if (task.hasFolder) { lines.push(`  ↷ Skipping '${task.taskName}' — already has a Dropbox link.`); continue; }
         if (board.isAmbiguous(task.department)) {
           lines.push(`  ⚠ '${task.taskName}' — department '${task.department}' not recognised, needs manual review.`);

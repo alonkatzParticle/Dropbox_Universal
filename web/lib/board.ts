@@ -161,7 +161,6 @@ export class Board {
     if (!this.autoName || !this.autoName.segments || this.autoName.segments.length === 0) return null;
 
     let baseName = item.name ?? "Untitled Task";
-    if (baseName.includes(" | ")) baseName = baseName.split(" | ").pop()!.trim();
 
     const built = this.autoName.segments
       .map((seg) => {
