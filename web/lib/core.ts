@@ -73,8 +73,9 @@ export async function runPolling(config: Record<string, unknown>): Promise<strin
 
   for (const [boardId, boardConfig] of Object.entries(boards)) {
     const board = new Board(boardId, boardConfig);
-    const since = (state[boardId] as string) ?? "2000-01-01T00:00:00+00:00";
-    lines.push(`\n[${board.name}] Checking for new items since ${since}...`);
+    // Override standard timestamp logic to rigorously sweep the entire Form Requests array every interval
+    const since = "2024-01-01T00:00:00+00:00";
+    lines.push(`\n[${board.name}] Deep-synchronizing recent items on board...`);
 
     try {
       const items = await getNewItems(boardId, since);
