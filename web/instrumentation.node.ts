@@ -16,7 +16,7 @@ import { loadConfig } from "./lib/storage";
  * Runs once immediately, then repeats on the given interval.
  */
 export function startPoller() {
-  const intervalMinutes = parseInt(process.env.POLL_INTERVAL_MINUTES ?? "60", 10);
+  const intervalMinutes = parseInt(process.env.POLL_INTERVAL_MINUTES ?? "5", 10);
   const intervalMs = intervalMinutes * 60 * 1000;
 
   async function runPoll() {

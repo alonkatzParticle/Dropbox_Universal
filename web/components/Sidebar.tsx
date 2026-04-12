@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/manual-fixes", label: "Manual Fixes", icon: PlusCircle },
   { href: "/naming-rules", label: "Naming Rules", icon: FolderInput },
+  { href: "/hierarchy", label: "Folder Hierarchy", icon: FolderTree },
   { href: "/configuration", label: "Configuration & Routing", icon: Columns2 },
   { href: "/settings", label: "System Settings", icon: KeyRound },
 ];
