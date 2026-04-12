@@ -109,7 +109,7 @@ export class Board {
     const key = Object.keys(this.departmentRules).find((k) => k.toLowerCase() === dept.toLowerCase());
     if (key) return this.departmentRules[key];
     return {
-      dropbox_folder: this.fallback.department ?? "Marketing Ads",
+      dropbox_folder: undefined,
       path_template: ["dept_folder", "category", "product", "media_type", "platform", "date", "task_name"],
     };
   }
