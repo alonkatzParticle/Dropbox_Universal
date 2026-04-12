@@ -162,8 +162,8 @@ export class Board {
 
     let baseName = item.name ?? "Untitled Task";
     
-    // Skip if there are already 2 or more vertical dividers
-    if ((baseName.match(/\|/g) || []).length >= 2) return null;
+    // Skip if there is at least one vertical divider
+    if ((baseName.match(/\|/g) || []).length >= 1) return null;
 
     const built = this.autoName.segments
       .map((seg) => {
