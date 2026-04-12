@@ -13,7 +13,8 @@ export async function GET(request: Request) {
     }
 
     const config = await loadConfig();
-    const boardConfig = config.boards?.[boardId] as BoardConfig | undefined;
+    const boards = (config.boards || {}) as Record<string, BoardConfig>;
+    const boardConfig = boards[boardId];
 
     if (!boardConfig) {
       return NextResponse.json({ error: "Board not configured" }, { status: 404 });
