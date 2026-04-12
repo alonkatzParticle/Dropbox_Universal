@@ -117,6 +117,7 @@ export async function runPolling(config: Record<string, unknown>): Promise<strin
   }
 
   for (const boardId of Object.keys(boards)) { state[boardId] = nowIso; }
+  state.lastPolled = nowIso;
   await saveState(state);
   lines.push("\nDone. State updated.");
   return lines.join("\n");

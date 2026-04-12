@@ -13,11 +13,12 @@
 import { NextResponse } from "next/server";
 import { loadState, saveState } from "@/lib/storage";
 
-// GET — return the current auto_enabled value (defaults to true if not set)
+// GET — return the current auto_enabled value and the last polled timestamp
 export async function GET() {
   const state = await loadState();
   const enabled = state.auto_enabled !== false; // treat missing as true
-  return NextResponse.json({ enabled });
+  const lastPolled = state.lastPolled as string | undefined;
+  return NextResponse.json({ enabled, lastPolled });
 }
 
 // POST — update auto_enabled in state

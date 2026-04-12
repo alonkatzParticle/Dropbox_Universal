@@ -44,184 +44,137 @@ export default function Home() {
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState<string>("");
   const [outputSuccess, setOutputSuccess] = useState<boolean | null>(null);
-  // Tasks that were processed in the last TaskList run — used to look up Monday URLs
-  const [processedTasks, setProcessedTasks] = useState<Task[]>([]);
-  // Whether automatic polling (cron) is enabled
   const [autoEnabled, setAutoEnabled] = useState<boolean | null>(null);
+  const [lastPolled, setLastPolled] = useState<string | null>(null);
 
-  // Fetch the auto-enabled flag on mount
   useEffect(() => {
-    fetch("/api/auto").then((r) => r.json()).then((d) => setAutoEnabled(d.enabled ?? true));
+    fetch("/api/auto").then((r) => r.json()).then((d) => {
+      setAutoEnabled(d.enabled ?? true);
+      setLastPolled(d.lastPolled);
+    });
   }, []);
 
-  // Toggle the auto-enabled flag and persist it via the API
   async function toggleAuto(enabled: boolean) {
     setAutoEnabled(enabled);
-    await fetch("/api/auto", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled }),
-    });
+    await fetch("/api/auto", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled }) });
   }
 
-  // Run a poll or full backfill and display the output
-  async function runMode(mode: "poll" | "all") {
+  async function runSync() {
     setIsRunning(true);
     setOutput("");
     setOutputSuccess(null);
-    setProcessedTasks([]);
-    const res = await fetch("/api/run", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode }),
-    });
+    const res = await fetch("/api/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "poll" }) });
     const data = await res.json();
     setOutput(data.output ?? "");
     setOutputSuccess(data.success);
     setIsRunning(false);
+    
+    // Update last polled
+    fetch("/api/auto").then((r) => r.json()).then((d) => setLastPolled(d.lastPolled));
   }
 
-  // Called by TaskList after it finishes processing selected tasks
-  function handleTaskRunComplete(taskOutput: string, success: boolean, tasks: Task[]) {
-    setOutput(taskOutput);
-    setOutputSuccess(success);
-    setProcessedTasks(tasks);
-  }
+  const created = output ? parseCreatedFolders(output) : [];
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-4xl mx-auto px-6 py-8 space-y-8">
-
-        {/* Link Verifier — add Dropbox links for individual tasks */}
-        <LinkVerifier />
-
-        {/* Quick actions — poll, backfill, and auto-create toggle */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Actions</h2>
-            {/* Toggle to enable/disable automatic folder creation via cron polling */}
-            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
-              Auto-create
-              <Switch
-                checked={autoEnabled ?? false}
-                onCheckedChange={toggleAuto}
-                disabled={autoEnabled === null}
-                className="scale-75"
-              />
-              <span className={autoEnabled ? "text-green-600 font-medium" : "text-muted-foreground"}>
-                {autoEnabled ? "On" : "Off"}
-              </span>
+      <main className="max-w-4xl mx-auto px-6 py-12 space-y-10">
+        
+        {/* Header Block */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight mb-2">Synchronization</h1>
+            <p className="text-muted-foreground text-sm">Force an instant synchronization sweep across all Monday.com pipelines.</p>
+          </div>
+          
+          <div className="flex flex-col items-end gap-1.5 bg-muted/40 px-4 py-3 rounded-lg border border-border/50">
+            <label className="flex items-center gap-3 text-sm font-medium text-foreground cursor-pointer select-none">
+              Background Automation
+              <Switch checked={autoEnabled ?? false} onCheckedChange={toggleAuto} disabled={autoEnabled === null} className="scale-90" />
             </label>
+            <span className="text-xs text-muted-foreground">
+              {autoEnabled ? "Cron is active (runs every 5m)" : "Cron is paused"}
+            </span>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Poll card — only checks tasks created since last run */}
-            <Card className="flex-1 border border-border/60">
-              <CardContent className="pt-5 pb-5 space-y-3">
-                <div>
-                  <p className="text-sm font-medium">Check for New Tasks</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Polls all boards for tasks created since the last run.
-                  </p>
-                </div>
-                <Button size="sm" onClick={() => runMode("poll")} disabled={isRunning}>
-                  <RefreshCw className={`h-3.5 w-3.5 mr-2 ${isRunning ? "animate-spin" : ""}`} />
-                  {isRunning ? "Checking…" : "Run Poll"}
-                </Button>
-              </CardContent>
-            </Card>
-            {/* Backfill card — scans every task on all boards */}
-            <Card className="flex-1 border border-border/60">
-              <CardContent className="pt-5 pb-5 space-y-3">
-                <div>
-                  <p className="text-sm font-medium">Add All Missing Links</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Scans every task on all boards and creates folders for any missing a link.
-                  </p>
-                </div>
-                <Button size="sm" variant="secondary" onClick={() => runMode("all")} disabled={isRunning}>
-                  <Layers className={`h-3.5 w-3.5 mr-2 ${isRunning ? "animate-pulse" : ""}`} />
-                  {isRunning ? "Running…" : "Run Backfill"}
-                </Button>
-              </CardContent>
-            </Card>
+        </div>
+
+        {/* Hero Card */}
+        <Card className="border border-border/80 shadow-sm overflow-hidden bg-gradient-to-b from-card to-muted/20 relative">
+          <div className="absolute top-0 right-0 p-6 opacity-10">
+            <RefreshCw className="w-48 h-48" />
           </div>
-        </section>
+          <CardContent className="p-8 pb-10 flex flex-col items-center justify-center text-center space-y-6 relative z-10">
+            <div className="space-y-2">
+              <h2 className="text-2xl font-semibold tracking-tight">Sync Monday.com</h2>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                Trigger an immediate sweep to find unformatted tasks, correctly rename them, and generate their Dropbox folders.
+              </p>
+            </div>
+            
+            <Button size="lg" onClick={runSync} disabled={isRunning} className="h-14 px-8 text-base shadow-md transition-all">
+              <RefreshCw className={`h-5 w-5 mr-3 ${isRunning ? "animate-spin" : ""}`} />
+              {isRunning ? "Synchronizing pipeline..." : "Run Instant Sync"}
+            </Button>
 
-        {/* Task list with checkboxes and URL input */}
-        <TaskList onRunComplete={handleTaskRunComplete} />
+            {lastPolled && (
+              <p className="text-xs text-muted-foreground font-medium pt-2">
+                Last synchronized: {new Date(lastPolled).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit' })}
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
-        {/* Output section — only shown after an action runs */}
-        {output && (() => {
-          const created = parseCreatedFolders(output);
-          return (
-            <section className="space-y-3">
-              {/* Success or error banner */}
-              <Alert variant={outputSuccess ? "default" : "destructive"} className="py-2 px-3">
-                <div className="flex items-center gap-2">
-                  {outputSuccess
-                    ? <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    : <XCircle className="h-4 w-4" />}
-                  <AlertDescription className="text-xs font-medium">
-                    {outputSuccess ? "Completed successfully" : "Finished with errors"}
+        {/* Results Block */}
+        {output !== "" && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground ml-1">Sync Results</h3>
+            
+            <Alert variant={outputSuccess ? "default" : "destructive"} className={`py-4 px-5 border ${outputSuccess ? 'bg-green-500/5 text-green-700 border-green-500/20' : ''}`}>
+              <div className="flex items-center gap-3">
+                {outputSuccess ? <CheckCircle2 className="h-5 w-5 text-green-600" /> : <XCircle className="h-5 w-5" />}
+                <div>
+                  <AlertDescription className="font-semibold text-sm">
+                    {outputSuccess ? "Synchronization Complete" : "Synchronization encountered an error"}
                   </AlertDescription>
+                  <p className="text-xs opacity-80 mt-0.5">
+                    {outputSuccess ? `Processed execution fully.` : 'Review the developer logs below.'}
+                  </p>
                 </div>
-              </Alert>
+              </div>
+            </Alert>
 
-              {/* Created folders list — one row per task with Dropbox + Monday links */}
-              {created.length > 0 && (
-                <Card className="border border-border/60">
-                  <CardContent className="p-0">
-                    <div className="px-4 py-2.5 border-b border-border/60 bg-muted/40">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                        Created Folders
-                      </p>
+            {/* Structured Folders List */}
+            {created.length > 0 && (
+              <div className="grid gap-3">
+                {created.map(({ name, url }) => (
+                  <div key={url} className="flex items-center gap-4 bg-card p-4 rounded-lg border border-border/60 shadow-sm transition-all hover:border-primary/30">
+                    <div className="h-10 w-10 shrink-0 bg-blue-50 text-blue-600 rounded-md flex items-center justify-center">
+                      <FolderOpen className="h-5 w-5" />
                     </div>
-                    {created.map(({ name, url }) => {
-                      // Look up the Monday URL for this task by matching the task name
-                      const mondayUrl = processedTasks.find((t) => t.name === name)?.mondayUrl;
-                      return (
-                        <div
-                          key={url}
-                          className="flex items-center gap-3 px-4 py-3 border-b border-border/40 last:border-0"
-                        >
-                          <FolderOpen className="h-4 w-4 text-muted-foreground shrink-0" />
-                          <span className="text-sm font-medium flex-1 truncate">{name}</span>
-                          {/* Monday.com task link — only shown when we know the URL */}
-                          {mondayUrl && (
-                            <a
-                              href={mondayUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title="Open in Monday.com"
-                              className="shrink-0 text-blue-500 hover:text-blue-600"
-                            >
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </a>
-                          )}
-                          {/* Dropbox folder link */}
-                          <a
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Open Dropbox folder"
-                            className="shrink-0 text-muted-foreground hover:text-foreground"
-                          >
-                            <FolderOpen className="h-3.5 w-3.5" />
-                          </a>
-                        </div>
-                      );
-                    })}
-                  </CardContent>
-                </Card>
-              )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{name}</p>
+                      <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1 mt-0.5">
+                        Open Dropbox <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
-              {/* Raw Python log output */}
-              <ScrollArea className="h-48 w-full rounded-md border border-border/60 bg-muted/40">
-                <pre className="text-xs font-mono leading-relaxed p-4 whitespace-pre-wrap">{output}</pre>
-              </ScrollArea>
-            </section>
-          );
-        })()}
+            {/* Technical Logs Accordion */}
+            <details className="group border border-border/60 rounded-lg overflow-hidden bg-card">
+              <summary className="px-5 py-3.5 text-sm font-medium cursor-pointer flex items-center justify-between hover:bg-muted/40 transition-colors">
+                View Developer Logs
+                <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded font-mono">raw</span>
+              </summary>
+              <div className="border-t border-border/60">
+                <ScrollArea className="h-64 w-full bg-[#1e1e1e]">
+                  <pre className="text-[13px] font-mono leading-relaxed p-5 text-zinc-300 whitespace-pre-wrap">{output}</pre>
+                </ScrollArea>
+              </div>
+            </details>
+          </div>
+        )}
 
       </main>
     </div>

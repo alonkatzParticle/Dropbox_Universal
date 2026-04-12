@@ -15,16 +15,11 @@ import { FolderSync, LayoutDashboard, FolderTree, Columns2, Terminal, FolderInpu
 
 // Each nav item: where it goes, what label to show, and which icon to use
 const NAV_ITEMS = [
-  { href: "/", label: "Home", icon: LayoutDashboard },
-  { href: "/auto-create", label: "Auto-Creator", icon: Zap },
-  { href: "/auto-name", label: "Naming Rules", icon: FolderInput },
-  { href: "/skipped-tasks", label: "Skipped Tasks", icon: Ban },
-  { href: "/skip-rules", label: "Skip Rules", icon: ShieldOff },
-  { href: "/folder-mover", label: "Folder Mover", icon: FolderInput },
-  { href: "/hierarchy", label: "Folder Hierarchy", icon: FolderTree },
-  { href: "/board-setup", label: "Board Setup (Wizard)", icon: PlusCircle },
-  { href: "/debugger", label: "Debugger", icon: Terminal },
-  { href: "/settings", label: "Settings", icon: KeyRound },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/manual-fixes", label: "Manual Fixes", icon: PlusCircle },
+  { href: "/naming-rules", label: "Naming Rules", icon: FolderInput },
+  { href: "/configuration", label: "Configuration & Routing", icon: Columns2 },
+  { href: "/settings", label: "System Settings", icon: KeyRound },
 ];
 
 
