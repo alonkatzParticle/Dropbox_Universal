@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Loader2, Plus, Trash2, Zap, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Zap, CheckCircle2 } from "lucide-react";
 
 export default function AutoNamePage() {
   const [loading, setLoading] = useState(true);
