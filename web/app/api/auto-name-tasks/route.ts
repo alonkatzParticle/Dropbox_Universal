@@ -31,6 +31,7 @@ export async function GET(request: Request) {
     const mismatches = [];
 
     for (const item of items) {
+
       const expectedName = board.getAutoName(item);
       if (expectedName && expectedName !== item.name && expectedName.length > 0) {
         mismatches.push({

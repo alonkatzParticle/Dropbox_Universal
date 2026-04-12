@@ -30,7 +30,7 @@ export async function getNewItems(boardId: string, sinceIso: string): Promise<Mo
   const data = await runQuery(
     `query ($boardId: ID!) {
       boards(ids: [$boardId]) {
-        items_page(limit: 100) { items { ${ITEM_FIELDS} } }
+        items_page(limit: 500) { items { ${ITEM_FIELDS} } }
       }
     }`,
     { boardId }
