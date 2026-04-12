@@ -17,7 +17,7 @@ function getHeaders(): Record<string, string> {
   return {
     Authorization: token,
     "Content-Type": "application/json",
-    "API-Version": "2023-10",
+    "API-Version": "2024-04",
   };
 }
 

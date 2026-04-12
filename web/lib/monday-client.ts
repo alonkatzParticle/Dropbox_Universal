@@ -91,10 +91,10 @@ export async function updateDropboxLink(
  */
 export async function updateItemName(itemId: string, boardId: string, newName: string): Promise<void> {
   await runQuery(
-    `mutation ($itemId: ID!, $name: String!) {
-      change_item_name(item_id: $itemId, name: $name) { id }
+    `mutation ($itemId: ID!, $boardId: ID!, $value: String!) {
+      change_simple_column_value(item_id: $itemId, board_id: $boardId, column_id: "name", value: $value) { id }
     }`,
-    { itemId, name: newName }
+    { itemId, boardId, value: newName }
   );
 }
 
