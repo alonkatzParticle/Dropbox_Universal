@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     }
 
     const board = new Board(boardId, boardConfig);
-    if (!board.autoName || !board.autoName.segments || board.autoName.segments.length === 0) {
+    if (!board.autoName || !board.autoName.rules || board.autoName.rules.length === 0) {
       return NextResponse.json({ mismatches: [] });
     }
 

@@ -299,9 +299,10 @@ export default function AutoNamePage() {
                                     key={f} 
                                     className="text-[10px] font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100 cursor-pointer hover:bg-blue-100 hover:border-blue-300 transition-all shadow-sm"
                                     onClick={() => {
-                                        const currentVal = rule.template || "";
-                                        updateRuleTemplate(ruleIdx, currentVal + (currentVal && !currentVal.endsWith(" ") ? " | " : "") + `{{${f}}}`);
-                                        updateConfig(config);
+                                        const newConfig = JSON.parse(JSON.stringify(config));
+                                        const currentVal = newConfig.boards[selectedBoardId].autoName.rules[ruleIdx].template || "";
+                                        newConfig.boards[selectedBoardId].autoName.rules[ruleIdx].template = currentVal + (currentVal && !currentVal.endsWith(" ") ? " | " : "") + `{{${f}}}`;
+                                        updateConfig(newConfig);
                                     }}
                                 >
                                     {f}
