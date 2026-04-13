@@ -49,6 +49,7 @@ export interface BoardConfig {
   columns?: Record<string, string>;
   bundle_keywords?: string[];
   other_keywords?: string[];
+  ignored_folder_keywords?: string[];
   fallback_values?: Record<string, string>;
   department_rules?: Record<string, DeptRule>;
   fixed_level_values?: Record<string, string>;
@@ -73,6 +74,7 @@ export class Board {
   columns: Record<string, string>;
   bundleKeywords: string[];
   otherKeywords: string[];
+  ignoredFolderKeywords: string[];
   fallback: Record<string, string>;
   departmentRules: Record<string, DeptRule>;
   fixedLevelValues: Record<string, string>;
@@ -90,6 +92,7 @@ export class Board {
     this.columns = config.columns ?? {};
     this.bundleKeywords = config.bundle_keywords ?? [];
     this.otherKeywords = config.other_keywords ?? [];
+    this.ignoredFolderKeywords = config.ignored_folder_keywords ?? [];
     this.fallback = config.fallback_values ?? {};
     this.departmentRules = config.department_rules ?? {};
     this.fixedLevelValues = config.fixed_level_values ?? {};
@@ -98,7 +101,7 @@ export class Board {
 
   /** Determine category (Products / Bundles / Other) from a product name. */
   getCategory(product: string): string {
-    if (this.otherKeywords.includes(product)) return "Other";
+    if (this.otherKeywords.some((kw) => product.toLowerCase() === kw.toLowerCase())) return "Other";
     if (this.bundleKeywords.some((kw) => product.toLowerCase().includes(kw.toLowerCase()))) return "Bundles";
     return "Products";
   }
@@ -109,7 +112,7 @@ export class Board {
     const key = Object.keys(this.departmentRules).find((k) => k.toLowerCase() === dept.toLowerCase());
     if (key) return this.departmentRules[key];
     return {
-      dropbox_folder: this.fallback.department ?? "Marketing Ads",
+      dropbox_folder: undefined,
       path_template: ["dept_folder", "category", "product", "media_type", "platform", "date", "task_name"],
     };
   }
@@ -138,6 +141,12 @@ export class Board {
     const colId = this.columns[segment] ?? "";
     if (!colId) return this.fallback[segment] ?? "";
     const raw = getColumnValue(item, colId) || (this.fallback[segment] ?? "");
+    
+    // Explicit exclusions mapping (returns empty string to omit from hierarchy)
+    if (this.ignoredFolderKeywords.some(kw => raw.toLowerCase() === kw.toLowerCase())) {
+        return "";
+    }
+    
     if (segment === "department" && rule.dropbox_folder) return sanitize(rule.dropbox_folder);
     return sanitize(raw);
   }
