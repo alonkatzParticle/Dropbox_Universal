@@ -28,8 +28,20 @@ export function getDateFolder(now: Date = new Date()): string {
   return `${String(index).padStart(2, "0")}_${month} ${year}`;
 }
 
-export interface AutoNameConfig {
+export interface RuleCondition {
+  field: string;
+  operator: "equals" | "not_equals" | "is_empty" | "not_empty";
+  value?: string;
+}
+
+export interface NamingRule {
+  id: string;
+  conditions: RuleCondition[];
   template: string;
+}
+
+export interface AutoNameConfig {
+  rules: NamingRule[];
   skip_values?: string[];
 }
 
@@ -162,7 +174,7 @@ export class Board {
 
   /** Calculate the physical expected task name based on the raw autoName template */
   getAutoName(item: MondayItem): string | null {
-    if (!this.autoName || !this.autoName.template) return null;
+    if (!this.autoName || !this.autoName.rules || this.autoName.rules.length === 0) return null;
 
     let baseName = item.name ?? "Untitled Task";
     
@@ -171,8 +183,37 @@ export class Board {
 
     const skipValues = new Set((this.autoName.skip_values || []).map(v => v.toLowerCase()));
 
-    // Tokenize all {{field}} or {{field|fallback}} blocks
-    let built = this.autoName.template.replace(/\{\{([^\}]+)\}\}/g, (match, expression) => {
+    // 1. Evaluate Waterfall Conditions
+    let activeTemplate = "";
+    for (const rule of this.autoName.rules) {
+      let isMatch = true;
+      for (const cond of (rule.conditions || [])) {
+        let val = "";
+        if (cond.field === "taskName") {
+          val = baseName;
+        } else {
+          const colId = this.columns[cond.field] ?? "";
+          val = getColumnValue(item, colId) || (this.fallback[cond.field] ?? "");
+        }
+        val = val.trim().toLowerCase();
+        const condVal = (cond.value || "").trim().toLowerCase();
+
+        if (cond.operator === "equals" && val !== condVal) { isMatch = false; break; }
+        if (cond.operator === "not_equals" && val === condVal) { isMatch = false; break; }
+        if (cond.operator === "is_empty" && val !== "") { isMatch = false; break; }
+        if (cond.operator === "not_empty" && val === "") { isMatch = false; break; }
+      }
+
+      if (isMatch && rule.template) {
+        activeTemplate = rule.template;
+        break; // Waterfall stops at the first successful rule mask
+      }
+    }
+
+    if (!activeTemplate) return null;
+
+    // 2. Tokenize all {{field}} or {{field|fallback}} blocks using the matched template
+    let built = activeTemplate.replace(/\{\{([^\}]+)\}\}/g, (match, expression) => {
       const parts = expression.split("|").map((p: string) => p.trim());
       let resolvedValue = "";
 
