@@ -28,14 +28,9 @@ export function getDateFolder(now: Date = new Date()): string {
   return `${String(index).padStart(2, "0")}_${month} ${year}`;
 }
 
-export interface AutoNameSegment {
-  field: string;
-  fallback?: string;
-  valueMap?: Record<string, string>;
-  onlyValues?: string[];
-  skipValues?: string[];
-  onlyWhenField?: string;
-  onlyWhenValue?: string;
+export interface AutoNameConfig {
+  template: string;
+  skip_values?: string[];
 }
 
 export interface BoardConfig {
@@ -53,7 +48,7 @@ export interface BoardConfig {
   fallback_values?: Record<string, string>;
   department_rules?: Record<string, DeptRule>;
   fixed_level_values?: Record<string, string>;
-  autoName?: { segments: AutoNameSegment[] };
+  autoName?: AutoNameConfig;
 }
 
 export interface DeptRule {
@@ -78,7 +73,7 @@ export class Board {
   fallback: Record<string, string>;
   departmentRules: Record<string, DeptRule>;
   fixedLevelValues: Record<string, string>;
-  autoName?: { segments: AutoNameSegment[] };
+  autoName?: AutoNameConfig;
 
   constructor(boardId: string, config: BoardConfig) {
     this.boardId = boardId;
@@ -165,55 +160,59 @@ export class Board {
     return parts.join("/");
   }
 
-  /** Calculate the physical expected task name based on autoName rules for Monday.com */
+  /** Calculate the physical expected task name based on the raw autoName template */
   getAutoName(item: MondayItem): string | null {
-    if (!this.autoName || !this.autoName.segments || this.autoName.segments.length === 0) return null;
+    if (!this.autoName || !this.autoName.template) return null;
 
     let baseName = item.name ?? "Untitled Task";
     
-    // Skip if there is at least one vertical divider
+    // Skip if there is at least one vertical divider in the original name
     if ((baseName.match(/\|/g) || []).length >= 1) return null;
 
-    const built = this.autoName.segments
-      .map((seg) => {
+    const skipValues = new Set((this.autoName.skip_values || []).map(v => v.toLowerCase()));
+
+    // Tokenize all {{field}} or {{field|fallback}} blocks
+    let built = this.autoName.template.replace(/\{\{([^\}]+)\}\}/g, (match, expression) => {
+      const parts = expression.split("|").map((p: string) => p.trim());
+      let resolvedValue = "";
+
+      // Try each fallback in order
+      for (const field of parts) {
         let val = "";
-        if (seg.field === "taskName") {
+        if (field === "taskName") {
           val = baseName;
         } else {
-          const colId = this.columns[seg.field] ?? "";
-          val = getColumnValue(item, colId) || (this.fallback[seg.field] ?? "");
+          // It's a standard board column or fallback keyword
+          const colId = this.columns[field] ?? "";
+          val = getColumnValue(item, colId) || (this.fallback[field] ?? "");
         }
+        
+        val = val.trim();
 
-        // Specifically treat "Other" as an empty string natively so it naturally triggers fallbacks!
-        if (val.toLowerCase() === "other") {
+        // If explicitly in the global skip_values array, treat as empty
+        if (skipValues.has(val.toLowerCase())) {
           val = "";
         }
 
-        if (!val && seg.fallback) {
-          if (seg.fallback === "taskName") val = baseName;
-          else {
-            const fallbackColId = this.columns[seg.fallback] ?? "";
-            val = getColumnValue(item, fallbackColId) || (this.fallback[seg.fallback] ?? "");
-          }
+        if (val) {
+          resolvedValue = val;
+          break; // Stop at first valid value
         }
-        if (!val) return null;
+      }
 
-        if (seg.onlyWhenField) {
-          const condColId = this.columns[seg.onlyWhenField] ?? "";
-          const condVal = getColumnValue(item, condColId) || (this.fallback[seg.onlyWhenField] ?? "");
-          if (condVal !== seg.onlyWhenValue) return null;
-        }
+      return resolvedValue;
+    });
 
-        if (seg.onlyValues && !seg.onlyValues.includes(val)) return null;
-        if (seg.skipValues && seg.skipValues.includes(val)) return null;
-        if (seg.valueMap && seg.valueMap[val]) val = seg.valueMap[val];
+    // Cleanup: Remove dangling separators caused by empty tokens
+    // Matches patterns like " |  | " or "- - " and repeated dashes/pipes with spaces
+    built = built.replace(/\s*\|\s*\|\s*/g, " | ");
+    built = built.replace(/\s*-\s*-\s*/g, " - ");
+    
+    // Also remove leading or trailing separators that got left behind
+    built = built.replace(/^[\s\|-]+/, "");
+    built = built.replace(/[\s\|-]+$/, "");
 
-        return val;
-      })
-      .filter(Boolean)
-      .join(" | ");
-
-    return built;
+    return built.trim();
   }
 }
 

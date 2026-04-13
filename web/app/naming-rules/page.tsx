@@ -70,8 +70,8 @@ export default function AutoNamePage() {
   const board = config.boards?.[selectedBoardId];
   if (!board) return <div className="p-8">No boards found.</div>;
 
-  const autoName = board.autoName || { segments: [] };
-  const segments = autoName.segments || [];
+  const autoName = board.autoName || { template: "" };
+  const templateStr = autoName.template || "";
 
   const availableFields = ["taskName", ...Object.keys(board.columns || {}), ...Object.keys(board.fallback_values || {})];
   const uniqueFields = Array.from(new Set(availableFields));
@@ -83,26 +83,6 @@ export default function AutoNamePage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newConfig)
     });
-  };
-
-  const addSegment = () => {
-    const newConfig = { ...config };
-    if (!newConfig.boards[selectedBoardId].autoName) newConfig.boards[selectedBoardId].autoName = { segments: [] };
-    newConfig.boards[selectedBoardId].autoName.segments.push({ field: "taskName" });
-    updateConfig(newConfig);
-  };
-
-  const updateSegment = (index: number, key: string, value: string) => {
-    const newConfig = { ...config };
-    newConfig.boards[selectedBoardId].autoName.segments[index][key] = value;
-    if (value === "") delete newConfig.boards[selectedBoardId].autoName.segments[index][key];
-    updateConfig(newConfig);
-  };
-
-  const deleteSegment = (index: number) => {
-    const newConfig = { ...config };
-    newConfig.boards[selectedBoardId].autoName.segments.splice(index, 1);
-    updateConfig(newConfig);
   };
 
   return (
@@ -125,41 +105,47 @@ export default function AutoNamePage() {
           </select>
         </div>
 
-        <div className="space-y-3 bg-muted/20 p-6 rounded-xl border border-border/50">
-          {segments.map((seg: any, i: number) => (
-            <Card key={i} className="p-4 flex items-center gap-4 border-dashed shadow-none bg-white">
-              <div className="flex-1 grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground">PRIMARY FIELD</label>
-                  <select 
-                    className="w-full border border-input rounded-md px-2 py-1.5 text-sm"
-                    value={seg.field || ""}
-                    onChange={e => updateSegment(i, "field", e.target.value)}
-                  >
-                    {uniqueFields.map(f => <option key={f} value={f}>{f}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground">FALLBACK</label>
-                  <select 
-                    className="w-full border border-input rounded-md px-2 py-1.5 text-sm active:border-primary"
-                    value={seg.fallback || ""}
-                    onChange={e => updateSegment(i, "fallback", e.target.value)}
-                  >
-                    <option value="">(None)</option>
-                    {uniqueFields.map(f => <option key={f} value={f}>{f}</option>)}
-                  </select>
-                </div>
-              </div>
-              <Button variant="ghost" size="icon" className="text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors" onClick={() => deleteSegment(i)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </Card>
-          ))}
+        <div className="space-y-4 bg-muted/20 p-6 rounded-xl border border-border/50">
+          <div>
+            <label className="text-sm font-semibold text-foreground">Routing String Template</label>
+            <p className="text-xs text-muted-foreground mb-3 mt-1">
+              Use <code className="bg-muted px-1.5 py-0.5 rounded text-primary font-mono text-[11px]">{"{{"}field{"}}"}</code> to insert dynamic values. Use <code className="bg-muted px-1.5 py-0.5 rounded text-primary font-mono text-[11px]">{"{{"}field|fallback{"}}"}</code> to chain fallbacks.
+            </p>
+            <textarea 
+              className="w-full h-28 p-4 text-sm font-mono border border-input rounded-md bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={templateStr}
+              onChange={e => {
+                const newConfig = { ...config };
+                if (!newConfig.boards[selectedBoardId].autoName) newConfig.boards[selectedBoardId].autoName = {};
+                newConfig.boards[selectedBoardId].autoName.template = e.target.value;
+                setConfig(newConfig); // Optimistic UI update
+              }}
+              onBlur={() => updateConfig(config)} // Save only when clicking away
+              placeholder="{{product}} | {{platform|department}} | {{taskName}}"
+            />
+          </div>
 
-          <Button variant="outline" className="w-full border-dashed py-6 text-muted-foreground hover:border-blue-300 hover:text-blue-600 transition-colors bg-transparent hover:bg-blue-50/50" onClick={addSegment}>
-            <Plus className="h-4 w-4 mr-2" /> Add Name Segment
-          </Button>
+          <div className="pt-4 border-t border-border/50">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Available Variables</h3>
+            <div className="flex flex-wrap gap-2">
+              {uniqueFields.map(f => (
+                <span key={f} className="text-xs font-mono bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 cursor-pointer hover:bg-blue-100 hover:border-blue-300 transition-all shadow-sm"
+                  title="Click to append to template"
+                  onClick={() => {
+                     const newConfig = { ...config };
+                     const currentTemplate = newConfig.boards[selectedBoardId].autoName?.template || "";
+                     newConfig.boards[selectedBoardId].autoName = { 
+                       ...newConfig.boards[selectedBoardId].autoName, 
+                       template: currentTemplate + (currentTemplate && !currentTemplate.endsWith(" ") ? " | " : "") + `{{${f}}}` 
+                     };
+                     updateConfig(newConfig);
+                  }}
+                >
+                  {f}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
