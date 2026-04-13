@@ -48,10 +48,15 @@ export default function Home() {
   const [lastPolled, setLastPolled] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/auto").then((r) => r.json()).then((d) => {
-      setAutoEnabled(d.enabled ?? true);
-      setLastPolled(d.lastPolled);
-    });
+    function fetchState() {
+      fetch("/api/auto").then((r) => r.json()).then((d) => {
+        setAutoEnabled(d.enabled ?? true);
+        setLastPolled(d.lastPolled);
+      });
+    }
+    fetchState();
+    const intervalId = setInterval(fetchState, 5000);
+    return () => clearInterval(intervalId);
   }, []);
 
   async function toggleAuto(enabled: boolean) {
