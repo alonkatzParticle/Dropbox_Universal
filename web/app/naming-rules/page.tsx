@@ -202,20 +202,7 @@ export default function AutoNamePage() {
           </select>
         </div>
 
-        {/* Global Variables Cheatsheet */}
-        <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-          <h3 className="text-[11px] font-bold text-blue-800 uppercase tracking-wider mb-3">Copy Variables</h3>
-          <div className="flex flex-wrap gap-2">
-            {uniqueFields.map(f => (
-              <span key={f} className="text-xs font-mono bg-white text-blue-700 px-2 py-1 rounded border border-blue-200 shadow-sm select-all">
-                {`{{${f}}}`}
-              </span>
-            ))}
-            <span className="text-xs font-mono bg-white text-muted-foreground px-2 py-1 rounded border border-border/50 shadow-sm select-all" title="Example of fallback syntax">
-              {`{{platform|department}}`}
-            </span>
-          </div>
-        </div>
+
 
         <div className="space-y-4">
           {rules.length === 0 && (
@@ -303,8 +290,26 @@ export default function AutoNamePage() {
                   </div>
 
                   {/* Template Editor */}
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Yield Name As:</label>
+                  <div className="pt-2 border-t border-border/50">
+                    <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Yield Name As:</label>
+                        <div className="flex flex-wrap gap-1.5 justify-end">
+                            {uniqueFields.map(f => (
+                                <span 
+                                    key={f} 
+                                    className="text-[10px] font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100 cursor-pointer hover:bg-blue-100 hover:border-blue-300 transition-all shadow-sm"
+                                    onClick={() => {
+                                        const currentVal = rule.template || "";
+                                        updateRuleTemplate(ruleIdx, currentVal + (currentVal && !currentVal.endsWith(" ") ? " | " : "") + `{{${f}}}`);
+                                        updateConfig(config);
+                                    }}
+                                >
+                                    {f}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                    
                     <input 
                       type="text"
                       className="w-full p-3 font-mono text-sm border rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
