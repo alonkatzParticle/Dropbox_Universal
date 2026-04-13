@@ -38,6 +38,8 @@ export async function GET() {
             name: item.name,
             mondayUrl: task.mondayUrl,
             previewPath: preview,
+            department: task.department,
+            isAmbiguous: board.isAmbiguous(task.department)
           });
         }
       } catch (e) {
