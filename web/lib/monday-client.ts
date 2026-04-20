@@ -22,21 +22,48 @@ const ITEM_FIELDS = `
 `;
 
 /**
- * Fetch all items on a board created after a given ISO timestamp.
- * board_id  — Monday.com board ID
- * since_iso — ISO 8601 string, e.g. "2026-01-01T00:00:00Z"
+ * Fetch ALL items on a board using cursor-based pagination.
+ * Monday's API returns at most 500 items per page — this function
+ * loops until there are no more pages, so no task is ever silently skipped.
+ * Returns every item whose created_at is after sinceIso.
  */
 export async function getNewItems(boardId: string, sinceIso: string): Promise<MondayItem[]> {
-  const data = await runQuery(
-    `query ($boardId: ID!) {
-      boards(ids: [$boardId]) {
-        items_page(limit: 500) { items { ${ITEM_FIELDS} } }
-      }
-    }`,
-    { boardId }
-  );
-  const items = (data as any).boards[0].items_page.items as MondayItem[];
-  return items.filter((item) => item.created_at > sinceIso);
+  const allItems: MondayItem[] = [];
+  let cursor: string | null = null;
+
+  // Keep fetching pages until Monday says there are no more (cursor becomes null)
+  do {
+    // First page: no cursor. Subsequent pages: pass the cursor from the previous response.
+    const data = cursor
+      ? await runQuery(
+          `query ($boardId: ID!, $cursor: String!) {
+            next_items_page(limit: 500, cursor: $cursor) { cursor items { ${ITEM_FIELDS} } }
+          }`,
+          { boardId, cursor }
+        )
+      : await runQuery(
+          `query ($boardId: ID!) {
+            boards(ids: [$boardId]) {
+              items_page(limit: 500) { cursor items { ${ITEM_FIELDS} } }
+            }
+          }`,
+          { boardId }
+        );
+
+    // Extract cursor and items from whichever query ran
+    const page = cursor
+      ? (data as any).next_items_page
+      : (data as any).boards[0].items_page;
+
+    const items = (page.items ?? []) as MondayItem[];
+    allItems.push(...items);
+
+    // If Monday returns a cursor, there are more pages. If null/undefined, we're done.
+    cursor = page.cursor ?? null;
+  } while (cursor);
+
+  // Filter client-side by creation date
+  return allItems.filter((item) => item.created_at > sinceIso);
 }
 
 /**
