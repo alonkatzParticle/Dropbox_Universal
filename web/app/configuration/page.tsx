@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Save, Loader2, Settings2, Sliders, CheckCircle2, Tag, Trash2, Plus, Ban, PackageOpen } from "lucide-react";
+import { Save, Loader2, Settings2, Sliders, CheckCircle2, Tag, Trash2, Plus, Ban, PackageOpen, Download } from "lucide-react";
 
 export default function ConfigurationPage() {
   const [loading, setLoading] = useState(true);
@@ -71,6 +71,18 @@ export default function ConfigurationPage() {
       setTimeout(() => setSaveStatus(null), 3000);
     }
   }
+
+  // Download the current live config as config.json so it can be committed to git.
+  // This is the safeguard against Vercel redeploys wiping KV-stored changes.
+  const handleExport = () => {
+    const blob = new Blob([rawJson], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "config.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const removeKeyword = (boardId: string, listKey: string, index: number) => {
     const newConfig = { ...config };
@@ -148,15 +160,26 @@ export default function ConfigurationPage() {
               Manage core operating variables like pipeline group targets, physical Dropbox root routing, and auto-naming segment engines.
             </p>
           </div>
-          <Button onClick={handleSave} disabled={saving} className="gap-2 h-10 px-6 shadow-sm">
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Save Configuration
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleExport} variant="outline" disabled={!config} className="gap-2 h-10 px-4 shadow-sm text-sm">
+              <Download className="h-4 w-4" />
+              Export config.json
+            </Button>
+            <Button onClick={handleSave} disabled={saving} className="gap-2 h-10 px-6 shadow-sm">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save Configuration
+            </Button>
+          </div>
         </div>
 
         {saveStatus === "success" && (
-          <div className="flex items-center gap-2 text-sm text-green-600 bg-green-500/10 p-3 rounded-md border border-green-500/20">
-            <CheckCircle2 className="h-4 w-4" /> Successfully persisted natively to Vercel KV and filesystem.
+          <div className="flex flex-col gap-1 bg-green-500/10 p-3 rounded-md border border-green-500/20">
+            <div className="flex items-center gap-2 text-sm text-green-600 font-medium">
+              <CheckCircle2 className="h-4 w-4 shrink-0" /> Saved to Vercel KV successfully.
+            </div>
+            <p className="text-xs text-green-700/80 pl-6">
+              ⚠ To prevent this being lost on the next deploy, click <strong>Export config.json</strong> and commit the file to git.
+            </p>
           </div>
         )}
 
