@@ -51,7 +51,7 @@ export async function getNewItems(boardId: string, sinceIso: string): Promise<Mo
         );
 
     // Extract cursor and items from whichever query ran
-    const page = cursor
+    const page: { cursor?: string | null; items: MondayItem[] } = cursor
       ? (data as any).next_items_page
       : (data as any).boards[0].items_page;
 
