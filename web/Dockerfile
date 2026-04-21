@@ -25,7 +25,8 @@ ENV HOSTNAME="0.0.0.0"
 COPY --from=builder /app/web/.next/standalone/ ./
 # Static assets and public folder must sit alongside server.js
 COPY --from=builder /app/web/.next/static ./.next/static
-COPY --from=builder /app/web/public ./public
+# Copy public folder only if it exists (this project may not have one)
+RUN if [ -d /app/web/public ]; then cp -r /app/web/public ./public; fi
 
 # /app/ (one level up from WORKDIR) is where config.json / state.json
 # are bind-mounted by docker-compose, matching the localFilePath() logic
