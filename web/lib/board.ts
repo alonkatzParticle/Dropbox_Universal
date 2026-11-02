@@ -258,7 +258,9 @@ export class Board {
 
     // Cleanup: Remove dangling separators caused by empty tokens
     // Matches patterns like " |  | " or "- - " and repeated dashes/pipes with spaces
-    built = built.replace(/\s*\|\s*\|\s*/g, " | ");
+    // Split on "|", drop empty sections, rejoin — handles any number of empty
+    // sections in a row (e.g. Product AND Platform/Department both skipped)
+    built = built.split("|").map((part) => part.trim()).filter(Boolean).join(" | ");
     built = built.replace(/\s*-\s*-\s*/g, " - ");
     
     // Also remove leading or trailing separators that got left behind
