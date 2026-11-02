@@ -33,7 +33,8 @@ export default function Sidebar() {
 
       {/* App logo and title at the top */}
       <div className="flex items-center gap-2.5 px-4 h-14 border-b border-border/60">
-        <FolderSync className="h-5 w-5 text-primary shrink-0" />
+        {/* Logo icon — pink (text-pink-500) */}
+        <FolderSync className="h-5 w-5 text-pink-500 shrink-0" />
         <span className="font-semibold text-sm tracking-tight leading-tight">
           Dropbox<br />Automation
         </span>
