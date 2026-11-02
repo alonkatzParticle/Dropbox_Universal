@@ -176,14 +176,22 @@ export class Board {
     return parts.join("/");
   }
 
-  /** Calculate the physical expected task name based on the raw autoName template */
-  getAutoName(item: MondayItem): string | null {
+  /**
+   * Calculate the expected task name from the autoName template.
+   * force=false (automatic): names that already contain "|" are left alone (returns null).
+   * force=true (manual rename from the homepage): re-applies the template, using only
+   * the part after the last " | " as the task name so old prefixes aren't repeated.
+   */
+  getAutoName(item: MondayItem, force = false): string | null {
     if (!this.autoName || !this.autoName.rules || this.autoName.rules.length === 0) return null;
 
     let baseName = item.name ?? "Untitled Task";
-    
-    // Skip if there is at least one vertical divider in the original name
-    if ((baseName.match(/\|/g) || []).length >= 1) return null;
+
+    if (force) {
+      baseName = baseName.split("|").pop()!.trim(); // Keep just the original task name
+    } else if ((baseName.match(/\|/g) || []).length >= 1) {
+      return null; // Already named — automatic runs never rename twice
+    }
 
     const skipValues = new Set((this.autoName.skip_values || []).map(v => v.toLowerCase()));
 

@@ -4,7 +4,7 @@
  * page.tsx — Home dashboard for the Dropbox Automation app.
  *
  * Sections:
- *  1. Actions — quick buttons to run a poll or full backfill, plus auto-create toggle
+ *  1. Actions — Sync button, auto-create toggle, and "Fix a single task" (SingleTaskFix)
  *  2. Missing Links — task list with toggles and checkboxes (TaskList component)
  *  3. Output — shows created folders + raw log after any action runs
  *
@@ -20,6 +20,7 @@ import { CheckCircle2, XCircle, RefreshCw, Layers, FolderOpen, ExternalLink } fr
 import { Switch } from "@/components/ui/switch";
 import TaskList, { type Task } from "@/components/TaskList";
 import LinkVerifier from "@/components/LinkVerifier";
+import SingleTaskFix from "@/components/SingleTaskFix";
 
 /**
  * Parse Python output to extract { name, url } pairs for every successfully created folder.
@@ -127,6 +128,9 @@ export default function Home() {
             )}
           </CardContent>
         </Card>
+
+        {/* Paste one task URL → rename it and/or make a new Dropbox folder */}
+        <SingleTaskFix onResult={(out, ok) => { setOutput(out); setOutputSuccess(ok); }} />
 
         {/* Results Block */}
         {output !== "" && (
