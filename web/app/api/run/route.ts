@@ -2,7 +2,7 @@
  * app/api/run/route.ts — Trigger automation runs from the web UI
  *
  * POST /api/run
- * Body: { mode: "poll" | "all" | "manual" | "selected", url?, force?, items? }
+ * Body: { mode: "poll" | "sync" | "all" | "manual" | "selected", url?, force?, items? }
  *
  * Runs the requested automation mode and returns the log output as JSON.
  * All logic lives in lib/core.ts — this route is just the HTTP entry point.
@@ -38,8 +38,11 @@ export async function POST(req: NextRequest) {
     } else if (mode === "selected") {
       if (!items?.length) return NextResponse.json({ error: "items required for selected mode" }, { status: 400 });
       output = await runSelected(items, config, force ?? false);
+    } else if (mode === "sync") {
+      // Homepage Sync button: every task without a link, in any non-excluded group
+      output = await runPolling(config, true);
     } else {
-      // Default: poll mode
+      // Default: poll mode (Form Requests only)
       output = await runPolling(config);
     }
 

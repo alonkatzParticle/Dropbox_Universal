@@ -52,6 +52,7 @@ export interface BoardConfig {
   status_column?: string;
   approved_label?: string;
   completed_labels?: string[];
+  sync_excluded_groups?: string[];   // Groups the homepage Sync button skips (default: completed_labels)
   form_requests_group?: string;
   columns?: Record<string, string>;
   bundle_keywords?: string[];
@@ -78,6 +79,7 @@ export class Board {
   approvedLabel: string;
   completedLabels: string[];
   formRequestsGroup: string;
+  syncExcludedGroups: string[];     // lowercased group names the full Sync skips
   columns: Record<string, string>;
   bundleKeywords: string[];
   otherKeywords: string[];
@@ -96,6 +98,8 @@ export class Board {
     this.approvedLabel = (config.approved_label ?? "Approved").toLowerCase();
     this.completedLabels = (config.completed_labels ?? ["Done"]).map((l) => l.toLowerCase());
     this.formRequestsGroup = (config.form_requests_group ?? "Form Requests").toLowerCase();
+    // Groups skipped by the homepage "Sync" — falls back to the completed labels (e.g. "Completed")
+    this.syncExcludedGroups = (config.sync_excluded_groups ?? config.completed_labels ?? ["Done"]).map((g) => g.toLowerCase());
     this.columns = config.columns ?? {};
     this.bundleKeywords = config.bundle_keywords ?? [];
     this.otherKeywords = config.other_keywords ?? [];

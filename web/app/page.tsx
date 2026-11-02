@@ -68,7 +68,7 @@ export default function Home() {
     setIsRunning(true);
     setOutput("");
     setOutputSuccess(null);
-    const res = await fetch("/api/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "poll" }) });
+    const res = await fetch("/api/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "sync" }) /* sync = all groups except Completed */ });
     const data = await res.json();
     setOutput(data.output ?? "");
     setOutputSuccess(data.success);

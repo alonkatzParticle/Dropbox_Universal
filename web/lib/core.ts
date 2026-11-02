@@ -53,13 +53,16 @@ export async function processItem(
 
 /**
  * Polling mode: check all boards for new tasks since the last run.
- * For tasks in the Form Requests group with no link:
+ * Normally only tasks in the Form Requests group are handled.
+ * With allGroups=true (the homepage "Sync" button), every task with no link is
+ * handled, except tasks in the board's sync_excluded_groups (default: Completed).
+ * For each eligible task with no link:
  *   - Department recognised → auto-create folder
  *   - Department unrecognised → log for manual review
  * Respects the auto_enabled flag from the web UI.
  * Returns a human-readable log string.
  */
-export async function runPolling(config: Record<string, unknown>): Promise<string> {
+export async function runPolling(config: Record<string, unknown>, allGroups = false): Promise<string> {
   const lines: string[] = [];
   const state = await loadState();
 
@@ -83,10 +86,12 @@ export async function runPolling(config: Record<string, unknown>): Promise<strin
 
       for (const item of items) {
         const task = new Task(item, board, subdomain);
-        if (!task.isNew) { lines.push(`  → Skipping '${task.taskName}' (group: '${task.groupTitle}')`); continue; }
+        // Full sync: any group except excluded ones (e.g. Completed). Normal poll: Form Requests only.
+        const eligible = allGroups ? !board.syncExcludedGroups.includes(task.groupTitle) : task.isNew;
+        if (!eligible) { lines.push(`  → Skipping '${task.taskName}' (group: '${task.groupTitle}')`); continue; }
 
         // Enforce the Naming Rules automatically ONLY for tasks in the Form Requests group!
-        const expectedName = board.getAutoName(item);
+        const expectedName = task.isNew ? board.getAutoName(item) : null;
         if (expectedName && expectedName !== item.name && expectedName.length > 0) {
           try {
             await updateItemName(item.id, boardId, expectedName);
